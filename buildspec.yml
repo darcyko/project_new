@@ -24,7 +24,7 @@ phases:
     commands:
       - echo "Build started on $(date)"
       - python -V  # Print Python version
-      - echo "Source directory: $CODEBUILD_SRC_DIR"
+      - echo $CODEBUILD_SRC_DIR
       - pwd  # Print working directory
       - env > .env  # Dump environment variables to file
       - ls -larth  # List directory contents
