@@ -12,7 +12,7 @@ phases:
       - echo "Logging in to Amazon ECR..."
       - aws --version  # Check AWS CLI version
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 905418067047.dkr.ecr.us-east-1.amazonaws.com
-      - REPOSITORY_URI=905418067047.dkr.ecr.us-east-1.amazonaws.com/darcyko-atul  # Set repository URI as an environment variable
+      - darcyko-atul=905418067047.dkr.ecr.us-east-1.amazonaws.com/darcyko-atul  # Set repository URI as an environment variable
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)  # Get the short commit hash
       - IMAGE_TAG=${COMMIT_HASH:-latest}  # Use commit hash as the image tag, fallback to 'latest'
 
@@ -28,7 +28,7 @@ phases:
       # Nginx Image Building
       - echo "Building the Nginx Docker image..."
       - docker build -t darcyko-atul:latest -f Dockerfile .  # Build Docker image
-      - docker tag darcyko-atul:latest $REPOSITORY_URI:$IMAGE_TAG  # Tag Docker image with commit hash
+      - docker tag darcyko-atul:latest $darcyko-atul:$IMAGE_TAG  # Tag Docker image with commit hash
 
   post_build:
     commands:
@@ -38,11 +38,11 @@ phases:
 
       # Push the Docker images to ECR
       - docker push darcyko-atul:latest
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - docker push $darcyko-atul:$IMAGE_TAG
 
       # Prepare the image details for ECS deployment (if needed)
-      - printf '[{"imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imageDetail.json
-      - printf '[{"name":"darcyko-atul","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - printf '[{"imageUri":"%s"}]' $darcyko-atul:$IMAGE_TAG > imageDetail.json
+      - printf '[{"name":"darcyko-atul","imageUri":"%s"}]' $darcyko-atul:$IMAGE_TAG > imagedefinitions.json
       - pwd  # Print working directory to verify final state
 
 artifacts:
