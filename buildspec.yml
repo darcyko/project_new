@@ -1,5 +1,9 @@
 version: 0.2
+env:
 
+  REPOSITORY_URI: darcyko-atul
+  IMAGE_TAG: latest
+  
 phases:
   install:
     commands:
@@ -20,7 +24,7 @@ phases:
     commands:
       - echo "Build started on $(date)"
       - python -V  # Print Python version
-      - echo "Source directory: $CODEBUILD_SRC_DIR"
+      - echo $CODEBUILD_SRC_DIR
       - pwd  # Print working directory
       - env > .env  # Dump environment variables to file
       - ls -larth  # List directory contents
@@ -28,6 +32,7 @@ phases:
       # Nginx Image Building
       - echo "Building the Nginx Docker image..."
       - docker build -t darcyko-atul:latest -f Dockerfile .  # Build Docker image
+      - echo "Tagging the Docker image..."
       - docker tag darcyko-atul:latest $REPOSITORY_URI:$IMAGE_TAG  # Tag Docker image with commit hash
 
   post_build:
@@ -48,4 +53,3 @@ phases:
 artifacts:
   files:
     - imagedefinitions.json  # Output ECS task definition (if using ECS)
-
