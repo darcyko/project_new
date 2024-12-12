@@ -4,7 +4,7 @@ phases:
   install:
     commands:
       - echo "Starting Docker Daemon..."
-      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
+      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2&
       - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
 
   pre_build:
@@ -14,7 +14,7 @@ phases:
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 905418067047.dkr.ecr.us-east-1.amazonaws.com
       - darcyko-atul=905418067047.dkr.ecr.us-east-1.amazonaws.com/darcyko-atul  # Set repository URI as an environment variable
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)  # Get the short commit hash
-      - IMAGE_TAG=${COMMIT_HASH:-latest}  # Use commit hash as the image tag, fallback to 'latest'
+      - IMAGE_TAG=${COMMIT_HASH:=latest}  # Use commit hash as the image tag, fallback to 'latest'
 
   build:
     commands:
