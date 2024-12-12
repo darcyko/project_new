@@ -1,10 +1,14 @@
 version: 0.2
+env:
 
+  REPOSITORY_URI: darcyko-atul
+  IMAGE_TAG: latest
+  
 phases:
   install:
     commands:
       - echo "Starting Docker Daemon..."
-      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2&
+      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
       - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
 
   pre_build:
@@ -12,9 +16,9 @@ phases:
       - echo "Logging in to Amazon ECR..."
       - aws --version  # Check AWS CLI version
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 905418067047.dkr.ecr.us-east-1.amazonaws.com
-      - darcyko-atul=905418067047.dkr.ecr.us-east-1.amazonaws.com/darcyko-atul  # Set repository URI as an environment variable
+      - export REPOSITORY_URI=905418067047.dkr.ecr.us-east-1.amazonaws.com/darcyko-atul  # Set repository URI as an environment variable
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)  # Get the short commit hash
-      - IMAGE_TAG=${COMMIT_HASH:=latest}  # Use commit hash as the image tag, fallback to 'latest'
+      - export IMAGE_TAG=${COMMIT_HASH:-latest}  # Use commit hash as the image tag, fallback to 'latest'
 
   build:
     commands:
@@ -28,7 +32,8 @@ phases:
       # Nginx Image Building
       - echo "Building the Nginx Docker image..."
       - docker build -t darcyko-atul:latest -f Dockerfile .  # Build Docker image
-      - docker tag darcyko-atul:latest $darcyko-atul:$IMAGE_TAG  # Tag Docker image with commit hash
+      - echo "Tagging the Docker image..."
+      - docker tag darcyko-atul:latest $REPOSITORY_URI:$IMAGE_TAG  # Tag Docker image with commit hash
 
   post_build:
     commands:
@@ -38,14 +43,13 @@ phases:
 
       # Push the Docker images to ECR
       - docker push darcyko-atul:latest
-      - docker push $darcyko-atul:$IMAGE_TAG
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
 
       # Prepare the image details for ECS deployment (if needed)
-      - printf '[{"imageUri":"%s"}]' $darcyko-atul:$IMAGE_TAG > imageDetail.json
-      - printf '[{"name":"darcyko-atul","imageUri":"%s"}]' $darcyko-atul:$IMAGE_TAG > imagedefinitions.json
+      - printf '[{"imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imageDetail.json
+      - printf '[{"name":"darcyko-atul","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - pwd  # Print working directory to verify final state
 
 artifacts:
   files:
     - imagedefinitions.json  # Output ECS task definition (if using ECS)
-
