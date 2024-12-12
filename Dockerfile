@@ -2,7 +2,7 @@
 FROM public.ecr.aws/p3m3l1u3/darcyko-atul:latest
 
 # Copy custom HTML files to the container (if you have custom content)
-COPY ./html /usr/share/nginx/html
+COPY . .
 
 # Expose port 80 (default HTTP port)
 EXPOSE 80
