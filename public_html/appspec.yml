@@ -1,0 +1,23 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ubuntu/public_html
+permissions:
+  - object: /home/ubuntu/public_html
+    pattern: “**”
+    owner: ubuntu
+    group: ubuntu
+    mode: 775
+    type:
+      - file
+      - directory
+
+hooks:
+  BeforeInstall:
+    - location: deployment_script/stop-project.sh
+      runas: ubuntu
+  AfterInstall:
+    - location: deployment_script/start-project.sh
+      timeout: 3600
+      runas: ubuntu
