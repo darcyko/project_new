@@ -1,5 +1,5 @@
 # Use the official Nginx image from Docker Hub
-FROM public.ecr.aws/p3m3l1u3/darcyko-atul:latest
+FROM nginx:latest
 
 # Copy custom HTML files to the container (if you have custom content)
 COPY . .
